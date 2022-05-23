@@ -7,6 +7,7 @@ import logging
 import decimal
 
 from datetime import datetime
+from datetime import timedelta
 from datetime import timezone
 from datetime import date
 from .version import __version__
@@ -370,6 +371,10 @@ class PelotonWorkout(PelotonObject):
         if kwargs.get('ride') is not None:
             self.ride = PelotonRide(**kwargs.get('ride'))
 
+        self.ride_hr_zones = NotLoaded()
+        if kwargs.get('effort_zones') is not None:
+            self.ride_hr_zones = PelotonRideHeartRateZones(**kwargs.get('effort_zones'))
+
         # Not entirely certain what the difference is between these two fields
         self.created = datetime.fromtimestamp(
             kwargs.get('created', 0), timezone.utc)
@@ -464,6 +469,18 @@ class PelotonWorkout(PelotonObject):
         """
         return PelotonWorkoutFactory.latest()
 
+    @classmethod
+    def latest10(cls):
+        """ Returns the lastest 10 workout objects
+        """
+        return PelotonWorkoutFactory.latest10()
+
+    @classmethod
+    def todays_classes(cls,lookback_days):
+        """ Returns the lastest workout object
+        """
+        return PelotonWorkoutFactory.todays_classes(lookback_days)
+
 
 class PelotonRide(PelotonObject):
     """ A read-only class that defines a ride (workout class)
@@ -485,6 +502,29 @@ class PelotonRide(PelotonObject):
 
     def __str__(self):
         return self.title
+
+    @classmethod
+    def get(cls, ride_id):
+        raise NotImplementedError()
+
+class PelotonRideHeartRateZones(PelotonObject):
+    """ A read-only class that defines heart rate zones in a ride (workout class)
+    
+    This class should never be invoked directly
+    """
+
+    def __init__(self, **kwargs):
+        self.strive_score = kwargs.get('total_effort_points')
+        zone_durations = kwargs.get('heart_rate_zone_durations')
+        self.heart_rate_z1_duration = zone_durations.get('heart_rate_z1_duration')
+        self.heart_rate_z2_duration = zone_durations.get('heart_rate_z2_duration')
+        self.heart_rate_z3_duration = zone_durations.get('heart_rate_z3_duration')
+        self.heart_rate_z4_duration = zone_durations.get('heart_rate_z4_duration')
+        self.heart_rate_z5_duration = zone_durations.get('heart_rate_z5_duration')
+
+
+    def __str__(self):
+        return self.strive_score
 
     @classmethod
     def get(cls, ride_id):
@@ -682,6 +722,65 @@ class PelotonWorkoutFactory(PelotonAPI):
         # Return our single workout, without having to get a bunch of
         # extra data from the API
         return PelotonWorkout(**res['data'][0])
+
+    @classmethod
+    def latest10(cls):
+        """ Returns an instance of PelotonWorkout that represents
+            the latest 10 workouts
+        """
+
+        # We need a user ID to list all workouts. @pelotoncycle, please
+        # don't do this :(
+        if cls.user_id is None:
+            cls._create_api_session()
+
+        uri = '/api/user/{}/workouts'.format(cls.user_id)
+        params = {
+            'page': 0,
+            'limit': 10,
+            'joins': 'ride,ride.instructor'
+        }
+
+        # Get our first page, which includes number of successive pages
+        res = cls._api_request(uri, params).json()
+        print(res)
+
+        # Add this pages data to our return list
+        ret = [PelotonWorkout(**workout) for workout in res['data']]
+
+        return ret
+
+    @classmethod
+    def todays_classes(cls,lookback_days):
+        """ Returns an instance of PelotonWorkout that represents
+            today's classes
+        """
+        # TODO: This function will only return all of today's classes if <= 10
+        # classes. Expand to handle cases where there are >10 classes taken
+        # We need a user ID to list all workouts. @pelotoncycle, please
+        # don't do this :(
+        if cls.user_id is None:
+            cls._create_api_session()
+
+        uri = '/api/user/{}/workouts'.format(cls.user_id)
+        params = {
+            'page': 0,
+            'limit': 10,
+            'joins': 'ride,ride.instructor'
+        }
+
+        # Get our first page, which includes number of successive pages
+        res = cls._api_request(uri, params).json()
+
+        ret = []
+        compared_date = datetime.today().date() - timedelta(days=lookback_days)
+
+        for workout in res['data']:
+            this_workout = PelotonWorkout(**workout)
+            if this_workout.start_time.date() == compared_date:
+                ret.append(this_workout)
+
+        return ret
 
 
 class PelotonWorkoutMetricsFactory(PelotonAPI):
