@@ -743,7 +743,6 @@ class PelotonWorkoutFactory(PelotonAPI):
 
         # Get our first page, which includes number of successive pages
         res = cls._api_request(uri, params).json()
-        print(res)
 
         # Add this pages data to our return list
         ret = [PelotonWorkout(**workout) for workout in res['data']]
