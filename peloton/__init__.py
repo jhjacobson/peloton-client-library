@@ -12,6 +12,19 @@ from .peloton import PelotonInstructor
 from .peloton import PelotonWorkoutSegment
 from .peloton import PelotonWorkoutFactory
 
+
+from flask import Flask, render_template
+from pymongo import MongoClient
+from bson.objectid import ObjectId
+
+app = Flask(__name__)
+
+client = MongoClient('localhost', 27017)
+db = client.flask_db
+workouts = db.workouts
+
+from peloton import routes
+
 _ALL_ = [
     "NotLoaded",
     "PelotonException",
