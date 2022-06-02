@@ -5,11 +5,6 @@ import os
 import requests
 import logging
 import decimal
-from pymongo import MongoClient
-
-client = MongoClient('localhost', 27017)
-db = client.peloton_db
-workouts_db = db.workouts
 
 from datetime import datetime
 from datetime import timedelta
@@ -502,6 +497,7 @@ class PelotonRide(PelotonObject):
 
         # When we make this Ride call from the workout factory, there
         # is no instructor data
+        # TODO: Reformat how to get instructor data (local from the database)
         if kwargs.get('instructor') is not None:
             self.instructor = PelotonInstructor(**kwargs.get('instructor'))
 
@@ -676,7 +672,7 @@ class PelotonWorkoutFactory(PelotonAPI):
         params = {
             'page': 0,
             'limit': results_per_page,
-            'joins': 'ride,ride.instructor'
+            'joins': 'ride'
         }
 
         # Get our first page, which includes number of successive pages
@@ -722,12 +718,11 @@ class PelotonWorkoutFactory(PelotonAPI):
         params = {
             'page': 0,
             'limit': 1,
-            'joins': 'ride,ride.instructor'
+            'joins': 'ride'
         }
 
         # Get our first page, which includes number of successive pages
         res = cls._api_request(uri, params).json()
-        # workouts_db.insert_one(res)
 
         # Return our single workout, without having to get a bunch of
         # extra data from the API
@@ -748,7 +743,7 @@ class PelotonWorkoutFactory(PelotonAPI):
         params = {
             'page': 0,
             'limit': 10,
-            'joins': 'ride,ride.instructor'
+            'joins': 'ride'
         }
 
         # Get our first page, which includes number of successive pages
@@ -775,7 +770,7 @@ class PelotonWorkoutFactory(PelotonAPI):
         params = {
             'page': 0,
             'limit': 10,
-            'joins': 'ride,ride.instructor'
+            'joins': 'ride'
         }
 
         # Get our first page, which includes number of successive pages
