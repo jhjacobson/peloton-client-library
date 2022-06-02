@@ -5,6 +5,11 @@ import os
 import requests
 import logging
 import decimal
+from pymongo import MongoClient
+
+client = MongoClient('localhost', 27017)
+db = client.peloton_db
+workouts_db = db.workouts
 
 from datetime import datetime
 from datetime import timedelta
@@ -685,7 +690,11 @@ class PelotonWorkoutFactory(PelotonAPI):
 
             params['page'] += 1
             res = cls._api_request(uri, params).json()
-            [ret.append(PelotonWorkout(**workout)) for workout in res['data']]
+            for workout in res['data']:
+                ret.append(PelotonWorkout(**workout))
+                # workouts_db.insert_one(workout)
+
+           # [ret.append(PelotonWorkout(**workout)) for workout in res['data']]
 
         return ret
 
@@ -718,6 +727,7 @@ class PelotonWorkoutFactory(PelotonAPI):
 
         # Get our first page, which includes number of successive pages
         res = cls._api_request(uri, params).json()
+        # workouts_db.insert_one(res)
 
         # Return our single workout, without having to get a bunch of
         # extra data from the API

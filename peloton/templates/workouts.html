@@ -4,5 +4,11 @@
 {% endblock %} 
 
 {% block content %} 
-    This is our content for the Workout Page. 
+    This is our content for the Workout Page.
+    <hr>
+    {% for workout in workouts %}
+    <p>{{ workout['data'] }} </p>
+    {% endfor %}
+    test
+
 {% endblock %}

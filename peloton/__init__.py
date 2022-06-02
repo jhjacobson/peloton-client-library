@@ -14,14 +14,15 @@ from .peloton import PelotonWorkoutFactory
 
 
 from flask import Flask, render_template
-from pymongo import MongoClient
 from bson.objectid import ObjectId
 
-app = Flask(__name__)
+from pymongo import MongoClient
 
 client = MongoClient('localhost', 27017)
-db = client.flask_db
-workouts = db.workouts
+db = client.peloton_db
+workouts_db = db.workouts
+
+app = Flask(__name__)
 
 from peloton import routes
 
