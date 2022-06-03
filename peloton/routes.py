@@ -1,6 +1,6 @@
 from peloton import app
 from flask import render_template, redirect, url_for, flash
-from peloton import workouts_db
+from .peloton import workouts_db
 
 from flask import render_template, redirect, url_for, flash
 

@@ -12,6 +12,11 @@ from datetime import timezone
 from datetime import date
 from .version import __version__
 
+from pymongo import MongoClient
+client = MongoClient('localhost', 27017)
+db = client.peloton_db
+workouts_db = db.workouts
+
 # Set our base URL location
 _BASE_URL = 'https://api.onepeloton.com'
 
@@ -723,6 +728,7 @@ class PelotonWorkoutFactory(PelotonAPI):
 
         # Get our first page, which includes number of successive pages
         res = cls._api_request(uri, params).json()
+        workouts_db.insert_one(res['data'][0])
 
         # Return our single workout, without having to get a bunch of
         # extra data from the API
