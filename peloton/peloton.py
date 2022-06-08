@@ -451,6 +451,8 @@ class PelotonWorkout(PelotonObject):
             # different endpoint
             elif attr == "metrics":
                 metrics = PelotonWorkoutMetricsFactory.get(self.id)
+                print("banana")
+                print(metrics) #banana
                 self.metrics = metrics
                 return metrics
 
@@ -693,7 +695,7 @@ class PelotonWorkoutFactory(PelotonAPI):
             res = cls._api_request(uri, params).json()
             for workout in res['data']:
                 ret.append(PelotonWorkout(**workout))
-                # workouts_db.insert_one(workout)
+                #workouts_db.insert_one(workout)
 
            # [ret.append(PelotonWorkout(**workout)) for workout in res['data']]
 
@@ -728,7 +730,7 @@ class PelotonWorkoutFactory(PelotonAPI):
 
         # Get our first page, which includes number of successive pages
         res = cls._api_request(uri, params).json()
-        workouts_db.insert_one(res['data'][0])
+        # workouts_db.insert_one(res['data'][0])
 
         # Return our single workout, without having to get a bunch of
         # extra data from the API
@@ -808,4 +810,5 @@ class PelotonWorkoutMetricsFactory(PelotonAPI):
         }
 
         res = cls._api_request(uri, params).json()
+        print(res) #banana
         return PelotonWorkoutMetrics(**res)
